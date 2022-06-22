@@ -1014,30 +1014,36 @@ void jit_avx2_conv_bwd_data_kernel_f32::compute_loop(
         for (int ii = 0; ii < nb_ic_block; ii++) {
             for (int jj = 0; jj < ur_w; jj++) {
                 const auto idx = ur_w * ii + jj;
+                const auto load_idx = (idx == 15) ? 14 : 15;
                 if (is_tail && ii == nb_ic_block - 1)
-                    load_bytes(Ymm(15), reg_dsrc, get_dsrc_offset(ii, jj),
+                    load_bytes(Ymm(load_idx), reg_dsrc, get_dsrc_offset(ii, jj),
                             ic_tail * sizeof(float));
                 else
-                    vmovups(Ymm(15),
+                    vmovups(Ymm(load_idx),
                             make_safe_addr(reg_dsrc, get_dsrc_offset(ii, jj),
                                     reg_long_offt));
                 post_ops_data_offset = 0;
                 depthwise_inj_idx = 0;
+
                 for (int kk = 0; kk < p.len(); kk++) {
                     auto& post_op = p.entry_[kk];
                     if (post_op.is_depthwise()) {
+                        base_post_ops_data_offset += reg64_size;
+                        push(reg_d_weights);
+
                         mov(reg_d_weights, ptr[this->rsp + base_post_ops_data_offset + post_ops_data_offset]);
                         add(reg_d_weights, ptr[this->param1 + GET_OFF(ic_off)]);
                         add(reg_d_weights, jcp.ic_block * ii * sizeof(float));
                         depthwise_injectors[depthwise_inj_idx]->compute_vector_range(
                                 idx, idx + 1, reg_d_weights, reg_d_weights, false, true);
+                        pop(reg_d_weights);
+                        base_post_ops_data_offset -= reg64_size;
 
                         post_ops_data_offset += depthwise_injectors[depthwise_inj_idx]->memoryStep();
                         depthwise_inj_idx++;
                     }
                 }
-
-                vaddps(Ymm(ur_w * ii + jj), Ymm(ur_w * ii + jj), Ymm(15));
+                vaddps(Ymm(idx), Ymm(idx), Ymm(load_idx));
             }
         }
 
@@ -1054,7 +1060,6 @@ void jit_avx2_conv_bwd_data_kernel_f32::compute_loop(
 
                 mov(reg_d_weights, ptr[this->rsp + base_post_ops_data_offset + post_ops_data_offset]);
                 add(reg_d_weights, ptr[this->param1 + GET_OFF(ic_off)]);
-
                 for (int ii = 0; ii < nb_ic_block; ii++) {
                     depthwise_injectors[depthwise_inj_idx]->compute_vector_range(
                             ur_w * ii, ur_w * ii + ur_w, reg_d_weights, reg_d_weights);
