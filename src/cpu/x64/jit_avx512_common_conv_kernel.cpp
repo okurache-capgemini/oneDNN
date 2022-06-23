@@ -1326,6 +1326,8 @@ void _jit_avx512_common_conv_bwd_data_kernel_f32<Vmm>::prepare_output(
 
 template <typename Vmm>
 void _jit_avx512_common_conv_bwd_data_kernel_f32<Vmm>::store_output(int ur_w) {
+    std::size_t post_ops_data_offset = 0;
+    int depthwise_inj_idx = 0;
     Label no_update_label, skip_post_ops;
     const int ic_tail = jcp.ic_without_padding % jcp.simd_w;
     const bool dsrc_layout_nxc = is_dsrc_layout_nxc();
@@ -1333,33 +1335,35 @@ void _jit_avx512_common_conv_bwd_data_kernel_f32<Vmm>::store_output(int ur_w) {
     cmp(reg_channel, 0);
     je(no_update_label, T_NEAR);
     const auto &p = attr_.post_ops_;
-    std::size_t post_ops_data_offset = 0;
-    int depthwise_inj_idx = 0;
+    const bool with_depthwise = p.find(primitive_kind::depthwise) != -1;
+
+    if (with_depthwise) {
+        mov(reg_d_weights, ptr[this->rsp + base_post_ops_data_offset + post_ops_data_offset]);
+        add(reg_d_weights, ptr[this->param1 + GET_OFF(oc_off)]);
+    }
 
     for (int k = 0; k < jcp.nb_ic_blocking; k++) {
-        for (int j = 0; j < ur_w; j++) {
-            const auto idx = j + k * jcp.ur_w;
-            assert(idx < ker_reg_base_idx);
-            size_t aux_src_offset = get_diff_src_offset(j, k);
+        if (with_depthwise) {
             post_ops_data_offset = 0;
             depthwise_inj_idx = 0;
-
             for (int i = 0; i < p.len(); i++) {
                 auto& post_op = p.entry_[i];
                 if (post_op.is_depthwise()) {
-                    mov(reg_d_weights, ptr[this->rsp + base_post_ops_data_offset + post_ops_data_offset]);
-                    add(reg_d_weights, ptr[this->param1 + GET_OFF(oc_off)]);
-                    add(reg_d_weights, jcp.ic_block * k * sizeof(float));
-
                     depthwise_injectors[depthwise_inj_idx]->compute_vector_range(
-                        idx, idx + 1, reg_d_weights, reg_d_weights, false, true);
+                        k*jcp.ur_w, k*jcp.ur_w + ur_w, reg_d_weights, reg_d_weights, false, true);
 
                     post_ops_data_offset += depthwise_injectors[depthwise_inj_idx]->memoryStep();
                     depthwise_inj_idx++;
                 }
             }
-            vaddps(Vmm(idx),
-            EVEX_compress_addr_safe(
+            add(reg_d_weights, jcp.ic_block * sizeof(float));
+        }
+
+        for (int j = 0; j < ur_w; j++) {
+            Vmm vmm = vmm_out(j, k);
+            size_t aux_src_offset = get_diff_src_offset(j, k);
+            vaddps(vmm,
+                        EVEX_compress_addr_safe(
                                 reg_src, aux_src_offset, reg_long_offt));
         }
     }
