@@ -160,7 +160,6 @@ gemm_info_t<a_t, b_t, c_t>::gemm_info_t(const char *transA, const char *transB,
     // Copy-based sgemm doesn't support force-nocopy for ISAs older
     // than Intel AVX.
     this->force_nocopy = is_sgemm && force_nocopy && mayiuse(avx);
-//     this->force_nocopy |= is_sgemm && mayiuse(avx512_mic);
 
     if (!this->force_nocopy || is_gemv) { this->jit_init(); }
 }
