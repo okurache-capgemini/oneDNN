@@ -28,7 +28,8 @@ const impl_list_map_t &regular_f32_s8_impl_list_map() {
         {{f32, s8, 0}, {
             // TODO: move it down when checks for sparse md are implemented in other implementations.
             DNNL_X64_ONLY(REG_SPARSE_SR(f32, oi, s8, OI16i64o4i, sparse_inputs_order::keep, sparse_spec::reference))
-            
+            DNNL_X64_ONLY(REG_SPARSE_SR(f32, io, s8, OI16i64o4i, sparse_inputs_order::keep, sparse_spec::reference))
+
             DNNL_X64_ONLY(CPU_REORDER_INSTANCE(x64_wino_reorder_t, f32, s8))
 
             CPU_REORDER_INSTANCE(rnn_data_reorder_t, f32, s8)
