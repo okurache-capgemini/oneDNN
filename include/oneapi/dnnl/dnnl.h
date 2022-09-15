@@ -2514,6 +2514,8 @@ dnnl_status_t DNNL_API dnnl_layer_normalization_backward_desc_init(
 /// @param ip_desc Output descriptor for inner product primitive.
 /// @param prop_kind Propagation kind. Possible values are
 ///     #dnnl_forward_training and #dnnl_forward_inference.
+/// @param alg_kind Inner product algorithm. Possible values are
+///     #dnnl_inner_product_direct, #dnnl_inner_product_sparse.
 /// @param src_desc Source memory descriptor.
 /// @param weights_desc Weights memory descriptor.
 /// @param bias_desc Bias memory descriptor. Passing NULL, a zero memory
@@ -2524,6 +2526,7 @@ dnnl_status_t DNNL_API dnnl_layer_normalization_backward_desc_init(
 ///     otherwise.
 dnnl_status_t DNNL_API dnnl_inner_product_forward_desc_init(
         dnnl_inner_product_desc_t *ip_desc, dnnl_prop_kind_t prop_kind,
+        dnnl_alg_kind_t alg_kind,
         const dnnl_memory_desc_t *src_desc,
         const dnnl_memory_desc_t *weights_desc,
         const dnnl_memory_desc_t *bias_desc,

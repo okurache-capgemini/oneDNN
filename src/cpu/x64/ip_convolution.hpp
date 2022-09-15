@@ -225,7 +225,7 @@ struct ip_convolution_fwd_t : public primitive_t {
             CHECK(maybe_reshape_weights(
                     &ip_weights_d, &weights_md_, with_groups(), to_ip));
 
-            return ip_desc_init(ipd, desc()->prop_kind, &src_md_, &ip_weights_d,
+            return ip_desc_init(ipd, desc()->prop_kind, alg_kind::inner_product_direct, &src_md_, &ip_weights_d,
                     &bias_md_, &ip_dst_d);
         }
     };
@@ -321,7 +321,7 @@ struct ip_convolution_bwd_data_t : public primitive_t {
             CHECK(maybe_reshape_weights(
                     &ip_weights_d, &weights_md_, with_groups(), to_ip));
 
-            return ip_desc_init(ipd, desc()->prop_kind, &diff_src_md_,
+            return ip_desc_init(ipd, desc()->prop_kind, alg_kind::inner_product_direct, &diff_src_md_,
                     &ip_weights_d, nullptr, &ip_diff_dst_d);
         }
     };
@@ -418,7 +418,7 @@ struct ip_convolution_bwd_weights_t : public primitive_t {
             CHECK(maybe_reshape_weights(&ip_diff_weights_d, &diff_weights_md_,
                     with_groups(), to_ip));
 
-            return ip_desc_init(ipd, desc()->prop_kind, &src_md_,
+            return ip_desc_init(ipd, desc()->prop_kind, alg_kind::inner_product_direct, &src_md_,
                     &ip_diff_weights_d, &diff_bias_md_, &ip_diff_dst_d);
         }
     };

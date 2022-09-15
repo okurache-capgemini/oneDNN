@@ -538,6 +538,10 @@ enum class algorithm {
     convolution_direct = dnnl_convolution_direct,
     /// Winograd convolution
     convolution_winograd = dnnl_convolution_winograd,
+    /// Direct inner product
+    inner_product_direct = dnnl_inner_product_direct,
+    /// Sparse inner product
+    inner_product_sparse = dnnl_inner_product_sparse,
     /// Direct deconvolution
     deconvolution_direct = dnnl_deconvolution_direct,
     /// Winograd deconvolution
@@ -8339,15 +8343,19 @@ struct inner_product_forward : public primitive {
         /// @param aprop_kind Propagation kind. Possible values are
         ///     #dnnl::prop_kind::forward_training, and
         ///     #dnnl::prop_kind::forward_inference.
+        /// @param aalgorithm Inner product algorithm. Possible values are
+        ///     #dnnl::algorithm::inner_product_direct,
+        ///     #dnnl::algorithm::inner_product_sparse.
         /// @param src_desc Memory descriptor for src.
         /// @param weights_desc Memory descriptor for weights.
         /// @param bias_desc Memory descriptor for bias.
         /// @param dst_desc Memory descriptor for dst.
-        desc(prop_kind aprop_kind, const memory::desc &src_desc,
+        desc(prop_kind aprop_kind, algorithm aalgorithm, const memory::desc &src_desc,
                 const memory::desc &weights_desc, const memory::desc &bias_desc,
                 const memory::desc &dst_desc) {
             error::wrap_c_api(dnnl_inner_product_forward_desc_init(&data,
                                       dnnl::convert_to_c(aprop_kind),
+                                      convert_to_c(aalgorithm),
                                       &src_desc.data, &weights_desc.data,
                                       &bias_desc.data, &dst_desc.data),
                     "could not create a descriptor for an inner product "
@@ -8364,15 +8372,20 @@ struct inner_product_forward : public primitive {
         /// @param aprop_kind Propagation kind. Possible values are
         ///     #dnnl::prop_kind::forward_training, and
         ///     #dnnl::prop_kind::forward_inference.
+        /// @param aalgorithm Inner product algorithm. Possible values are
+        ///     #dnnl::algorithm::inner_product_direct,
+        ///     #dnnl::algorithm::inner_product_sparse.
         /// @param src_desc Memory descriptor for src.
         /// @param weights_desc Memory descriptor for weights.
         /// @param dst_desc Memory descriptor for dst.
-        desc(prop_kind aprop_kind, const memory::desc &src_desc,
+        desc(prop_kind aprop_kind, algorithm aalgorithm, const memory::desc &src_desc,
                 const memory::desc &weights_desc,
                 const memory::desc &dst_desc) {
             error::wrap_c_api(
                     dnnl_inner_product_forward_desc_init(&data,
-                            dnnl::convert_to_c(aprop_kind), &src_desc.data,
+                            dnnl::convert_to_c(aprop_kind),
+                            convert_to_c(aalgorithm),
+                            &src_desc.data,
                             &weights_desc.data, nullptr, &dst_desc.data),
                     "could not create a descriptor for an inner product "
                     "forward propagation primitive");

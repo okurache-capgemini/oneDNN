@@ -26,7 +26,7 @@
 namespace dnnl {
 namespace impl {
 
-status_t ip_desc_init(inner_product_desc_t *ip_desc, prop_kind_t prop_kind,
+status_t ip_desc_init(inner_product_desc_t *ip_desc, prop_kind_t prop_kind, alg_kind_t alg_kind,
         const memory_desc_t *src_desc, const memory_desc_t *weights_desc,
         const memory_desc_t *bias_desc, const memory_desc_t *dst_desc);
 
@@ -176,6 +176,13 @@ protected:
 #undef IS_OK
 
         return true;
+    }
+
+// todo: antonvor
+    bool set_default_alg_kind(alg_kind_t alg_kind) {
+        assert(utils::one_of(alg_kind, alg_kind::inner_product_direct,
+                alg_kind::inner_product_sparse));
+        return desc_.alg_kind == alg_kind;
     }
 
     bool expect_data_types(data_type_t src_dt, data_type_t wei_dt,

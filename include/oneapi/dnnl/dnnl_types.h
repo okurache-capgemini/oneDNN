@@ -1437,6 +1437,10 @@ typedef enum {
     dnnl_convolution_winograd = 0x2,
     /// Convolution algorithm(either direct or Winograd) is chosen just in time
     dnnl_convolution_auto = 0x3,
+    /// Direct inner product
+    dnnl_inner_product_direct = 0x6,
+    /// Sparse inner product
+    dnnl_inner_product_sparse = 0x7,
     /// Direct deconvolution
     dnnl_deconvolution_direct = 0xa,
     /// Winograd deconvolution
@@ -2375,6 +2379,9 @@ typedef struct {
     dnnl_memory_desc_t diff_dst_desc;
     /// The accumulator data type. Initialized automatically.
     dnnl_data_type_t accum_data_type;
+    /// The kind of inner_product algorithm. Possbile values:
+    /// #dnnl_inner_product_direct, #dnnl_inner_product_sparse.
+    dnnl_alg_kind_t alg_kind;
 } dnnl_inner_product_desc_t;
 
 /// @} dnnl_api_inner_product

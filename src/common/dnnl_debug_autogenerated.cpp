@@ -1115,6 +1115,8 @@ const char *dnnl_alg_kind2str(dnnl_alg_kind_t v) {
     if (v == dnnl_convolution_direct) return "convolution_direct";
     if (v == dnnl_convolution_winograd) return "convolution_winograd";
     if (v == dnnl_convolution_auto) return "convolution_auto";
+    if (v == dnnl_inner_product_direct) return "inner_product_direct";
+    if (v == dnnl_inner_product_sparse) return "inner_product_sparse";
     if (v == dnnl_deconvolution_direct) return "deconvolution_direct";
     if (v == dnnl_deconvolution_winograd) return "deconvolution_winograd";
     if (v == dnnl_eltwise_relu) return "eltwise_relu";

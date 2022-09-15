@@ -94,6 +94,14 @@ struct simple_sparse_reorder_impl<SIMPLE_SPARSE_REORDER_TEMPL_CALL,
         using namespace utils;
         if (input_d.has_runtime_dims_or_strides()) return false;
 
+        bool status = true;
+        status = status && input_d.matches_tag(format_tag::ab);
+        status = status && output_d.is_sparse_desc();
+        status = status && output_d.sparse_desc().encoding == sparse_encoding::csr;
+        status = status && input_d.data_type() == f32;
+        status = status && output_d.data_type() == f32;
+        return status;
+
         return input_d.matches_tag(format_tag::ab) && output_d.is_sparse_desc()
                 && output_d.sparse_desc().encoding == sparse_encoding::csr
                 && input_d.data_type() == f32 && output_d.data_type() == f32;
@@ -160,6 +168,16 @@ struct simple_sparse_reorder_impl<SIMPLE_SPARSE_REORDER_TEMPL_CALL,
         const size_t D_mask = utils::array_product(
                 input_d.dims(), math::ilog2q(attr->output_scales_.mask_ + 1));
         const size_t oc = (input_d.dims()[0]);
+
+        bool status = true;
+        status = status && output_d.matches_tag(fmt_o);
+        status = status && input_d.matches_tag(fmt_i);
+        status = status && output_d.is_sparse_desc();
+        status = status && output_d.sparse_desc().encoding == sparse_encoding::packed;
+        status = status && one_of(input_d.data_type(), f32, s8);
+        status = status && output_d.data_type() == s8 && (D_mask == 1 || D_mask == oc);
+        status = status && (D_mask == 1 || D_mask == oc);
+        return status;
 
         return output_d.matches_tag(fmt_o) && input_d.matches_tag(fmt_i)
                 && output_d.is_sparse_desc()
